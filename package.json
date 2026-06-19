@@ -1,0 +1,95 @@
+{
+  "name": "digitaljs-schematic-viewer",
+  "displayName": "DigitalJS Schematic Viewer",
+  "description": "Synthesises Verilog/SystemVerilog files via the DigitalJS server and renders the interactive circuit simulator directly inside VSCode.",
+  "version": "1.0.1",
+  "publisher": "VENOMNBB",
+  "icon": "icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VENOMNBB/DigitalJS-Schematic-Viewer"
+  },
+  "bugs": {
+    "url": "https://github.com/VENOMNBB/DigitalJS-Schematic-Viewer/issues"
+  },
+  "homepage": "https://github.com/VENOMNBB/DigitalJS-Schematic-Viewer#readme",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "verilog",
+    "systemverilog",
+    "digitaljs",
+    "simulation",
+    "hdl",
+    "fpga",
+    "circuit"
+  ],
+  "activationEvents": [
+    "onCommand:digitaljsOnline.open",
+    "onView:digitaljs-settings"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "digitaljs-explorer",
+          "title": "DigitalJS",
+          "icon": "icon-grey.png"
+        }
+      ]
+    },
+    "views": {
+      "digitaljs-explorer": [
+        {
+          "type": "webview",
+          "id": "digitaljs-settings",
+          "name": "Parameters",
+          "icon": "icon.png"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "digitaljsOnline.open",
+        "title": "Open in DigitalJS",
+        "category": "DigitalJS",
+        "icon": "icon.png"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "digitaljsOnline.open",
+          "when": "resourceExtname == .v || resourceExtname == .sv",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "digitaljsOnline.open",
+          "when": "resourceExtname == .v || resourceExtname == .sv",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "digitaljsOnline.open",
+          "when": "resourceExtname == .v || resourceExtname == .sv",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "digitaljsOnline.open",
+          "when": "resourceExtname == .v || resourceExtname == .sv"
+        }
+      ]
+    }
+  }
+}
