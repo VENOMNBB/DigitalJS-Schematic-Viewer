@@ -468,7 +468,7 @@ function getWebviewHtml() {
       const msg = event.data;
 
       if (msg.type === 'loading') {
-        setStatus('Synthesising ' + msg.fileName + ' …', 'loading');
+        setStatus('Synthesising ' + msg.fileName, 'loading');
         fileLabel.textContent = msg.fileName;
         [btnStart,btnPause,btnFast,btnStep,btnFit,btnZoomIn,btnZoomOut].forEach(b => b.disabled = true);
       }
@@ -524,6 +524,10 @@ class DigitalJSSettingsProvider {
     this._view = webviewView;
     webviewView.webview.options = { enableScripts: true };
     webviewView.webview.html = this.getHtml();
+
+    if (this.currentFile) {
+      webviewView.webview.postMessage({ type: 'fileLoaded', fileName: this.currentFile });
+    }
 
     webviewView.webview.onDidReceiveMessage(data => {
       if (data.type === 'synthesize') {
@@ -613,7 +617,7 @@ class DigitalJSSettingsProvider {
   
   <h2>Circuit synthesis</h2>
   <div class="setting-group">
-    <label><input type="checkbox" id="opt-optimize"> Optimize in Yosys</label>
+    <label><input type="checkbox" id="opt-optimize" checked> Optimize in Yosys</label>
   </div>
   <div class="setting-group">
     <label><input type="checkbox" id="opt-simplify" checked> Simplify diagram</label>
@@ -628,7 +632,7 @@ class DigitalJSSettingsProvider {
   </div>
   
   <div class="setting-group">
-    <label><input type="checkbox" id="opt-logicGates" checked> Convert to logic gates</label>
+    <label><input type="checkbox" id="opt-logicGates"> Convert to logic gates</label>
     <div class="radio-group" id="logic-gate-radios">
       <label><input type="radio" name="logicGateType" value="unprocessed" checked> <span>Keep gates unprocessed</span></label>
       <label><input type="radio" name="logicGateType" value="subset"> <span>Map into subset of gates</span></label>
@@ -700,11 +704,6 @@ class DigitalJSSettingsProvider {
     }
 
     document.getElementById('btn-synthesize').addEventListener('click', triggerSynthesis);
-
-    // Auto-apply immediately when toggles change
-    document.querySelectorAll('input, select').forEach(el => {
-      el.addEventListener('change', triggerSynthesis);
-    });
 
     window.addEventListener('message', event => {
       const msg = event.data;
