@@ -49,7 +49,7 @@ code --install-extension digitaljs-schematic-viewer-x.x.x
 1. Open a `.v` or `.sv` file in the editor
 2. Click the **DigitalJS** icon in the top right corner of the editor window. (Alternatively: Right-click in the **editor** or **Explorer** → **Open in DigitalJS**
    — or `Ctrl+Shift+P` → **DigitalJS: Open in DigitalJS**).
-3. Open the DigitalJS Activity Bar (circuit board icon on the far left) to tweak Synthesis parameters.
+3. Open the DigitalJS Activity Bar to tweak Synthesis parameters.
 4. The extension POSTs your file to the DigitalJS synthesis API
 5. The synthesised circuit appears in a panel beside your editor
 6. Use the toolbar to **Start**, **Pause**, **Step**, or **Fast-forward** the simulation
