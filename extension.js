@@ -536,9 +536,10 @@ class DigitalJSSettingsProvider {
     });
   }
 
-  setFile(fileName, source) {
+  setFile(fileName, source, document) {
     this.currentFile = fileName;
     this.currentSource = source;
+    this.currentDocument = document;
     if (this._view) {
       this._view.webview.postMessage({ type: 'fileLoaded', fileName });
     }
@@ -546,6 +547,11 @@ class DigitalJSSettingsProvider {
 
   async executeSynthesis(settings) {
     if (!this.currentFile || !this.currentSource) return;
+
+    // Always pull the live editor text instead of relying on a stale cached string
+    if (this.currentDocument) {
+      this.currentSource = this.currentDocument.getText();
+    }
 
     if (currentPanel) {
       currentPanel.reveal(vscode.ViewColumn.Beside);
@@ -745,7 +751,7 @@ function activate(context) {
       const fileName = filePath.split(/[\\/]/).pop();
 
       // Pass the file context to the Sidebar provider
-      settingsProvider.setFile(fileName, fileText);
+      settingsProvider.setFile(fileName, fileText, editor.document);
 
       // Focus the new sidebar panel
       vscode.commands.executeCommand('digitaljs-settings.focus');
