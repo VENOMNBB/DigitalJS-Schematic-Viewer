@@ -89,8 +89,46 @@ function getWebviewHtml() {
       min-width: 32px; height: 28px; padding: 0 8px;
       background: #3a3a3a; color: #eee;
       border: 1px solid #555; border-radius: 4px;
-      font-size: 13px; cursor: pointer;
+      font-size: 13px; line-height: 1; cursor: pointer;
       transition: background 0.1s;
+    }
+    .tbtn .btn-label {
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+
+    /* Pure-CSS shapes: font glyphs render with inconsistent internal
+       padding across platforms, which makes them look off-center inside
+       a button box no matter how much text-nudging is applied. Drawing
+       the icon as geometry sidesteps that entirely. */
+    .icon-play {
+      display: inline-block;
+      width: 0; height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 9px solid currentColor;
+    }
+    .icon-pause {
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .icon-pause::before, .icon-pause::after {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 12px;
+      background: currentColor;
+    }
+    .icon-collapse-left {
+      display: inline-block;
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-right: 7px solid currentColor;
+    }
+    .icon-collapse-right {
+      display: inline-block;
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 7px solid currentColor;
     }
     .tbtn:hover:not(:disabled) { background: #ffffff; }
     .tbtn:disabled { opacity: 0.35; cursor: default; }
@@ -111,44 +149,70 @@ function getWebviewHtml() {
       min-width: 60px; text-align: center;
     }
 
+    #toolbar-status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #fff;
+      white-space: nowrap;
+      padding-right: 12px;
+      margin-right: 4px;
+      border-right: 1px solid #555;
+    }
+    #status-text { overflow: hidden; text-overflow: ellipsis; }
+    #status-dot {
+      flex: 0 0 auto;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #555;
+      box-shadow: none;
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    #status-dot.ok      { background: #209d05; box-shadow: 0 0 5px 1px #209d05; }
+    #status-dot.loading { background: #f2d349; box-shadow: 0 0 5px 1px #f2d349; }
+    #status-dot.error   { background: #fe0a0a; box-shadow: 0 0 5px 1px #fe0a0a; }
+
     #file-label {
       margin-left: 8px; color: #aaa; font-size: 11px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 200px;
     }
 
-    /* ── input control panel ── */
+    /* ── input control panel (single row) ── */
     #io-panel-wrap {
       flex: 0 0 auto;
       display: flex;
-      flex-direction: column;
-      background: #252526;
+      flex-direction: row;
+      align-items: center;
+      background: #2c2c2c;
       border-bottom: 1px solid #444;
+      padding: 4px 8px;
+      gap: 8px;
+      height: 42px;
+      box-sizing: border-box;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
     #io-panel-header {
       flex: 0 0 auto;
       display: flex; align-items: center; gap: 6px;
-      padding: 4px 8px;
-      background: #2c2c2c;
-      border-bottom: 1px solid #444;
     }
-    #io-panel-title { color: #ccc; font-size: 12px; font-weight: 400; }
+    #io-panel-title { color: #ccc; font-size: 12px; font-weight: 400; white-space: nowrap; }
     #btnIoCollapse {
-      background: none; border: none; color: #ccc;
-      font-size: 16px; line-height: 1; cursor: pointer;
-      padding: 0 2px; min-width: 0; height: auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; padding: 0;
+      background: #3a3a3a; color: #34afff;
+      border: 1px solid #34afff; border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.1s;
     }
-    #btnIoCollapse:hover { color: #fff; background: none; }
+    #btnIoCollapse:hover { background: #34afff; color: #1e1e1e; }
     #io-panel-body {
-      display: flex; flex-wrap: wrap; align-items: center;
+      display: flex; flex-wrap: nowrap; align-items: center;
       justify-content: flex-start;
       gap: 4px;
-      padding: 6px 8px;
-      max-height: 160px;
-      overflow-y: auto;
+      overflow: visible;
     }
     #io-panel-body.collapsed { display: none; }
-    #io-panel-empty { color: #888; font-size: 12px; }
+    #io-panel-empty { color: #888; font-size: 12px; white-space: nowrap; }
     #io-panel-empty.hidden { display: none; }
     #io-panel, #io-clock-panel {
       display: contents;
@@ -237,33 +301,6 @@ function getWebviewHtml() {
       transition: background-color 0.2s, box-shadow 0.2s;
     }
     .io-lamp input:checked + .io-lamp-dot { background: #209d05; box-shadow: 0 0 6px 1px #209d05; }
-
-    /* ── status bar ── */
-    #statusbar {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
-      font-size: 12px;
-      background: #4a4a4a;
-      color: #ffffff;
-      white-space: nowrap; overflow: hidden;
-    }
-    #status-text {
-      overflow: hidden; text-overflow: ellipsis;
-    }
-    #status-dot {
-      flex: 0 0 auto;
-      width: 22px; height: 12px;
-      border-radius: 999px;
-      background: #555;
-      box-shadow: none;
-      transition: background-color 0.2s, box-shadow 0.2s;
-    }
-    #status-dot.ok      { background: #209d05; box-shadow: 0 0 6px 1px #209d05; }
-    #status-dot.loading { background: #f2d349; box-shadow: 0 0 6px 1px #f2d349; }
-    #status-dot.error   { background: #fe0a0a; box-shadow: 0 0 6px 1px #fe0a0a; }
 
     /* ── main area: circuit on top, monitor on bottom ── */
     #main {
@@ -361,12 +398,11 @@ function getWebviewHtml() {
 <body>
 
   <div id="toolbar">
-    <button class="tbtn" id="btnStart" title="Start simulation" disabled>▶</button>
-    <button class="tbtn" id="btnPause" title="Pause simulation" disabled>⏸</button>
-    <button class="tbtn step1" id="btnStep"     title="Step 1"    disabled>▶ 1</button>
-    <button class="tbtn step10" id="btnStep10"   title="Step 10"   disabled>▶ 10</button>
-    <button class="tbtn step100" id="btnFast"     title="Step 100 (no render)" disabled>▶ 100</button>
-    <button class="tbtn step1000" id="btnStep1000" title="Step 1000" disabled>▶ 1000</button>
+    <button class="tbtn" id="btnPlayPause" title="Start simulation" disabled><span class="icon-play"></span></button>
+    <button class="tbtn step1" id="btnStep"     title="Step 1"    disabled><span class="btn-label"><span class="icon-play"></span>1</span></button>
+    <button class="tbtn step10" id="btnStep10"   title="Step 10"   disabled><span class="btn-label"><span class="icon-play"></span>10</span></button>
+    <button class="tbtn step100" id="btnFast"     title="Step 100 (no render)" disabled><span class="btn-label"><span class="icon-play"></span>100</span></button>
+    <button class="tbtn step1000" id="btnStep1000" title="Step 1000" disabled><span class="btn-label"><span class="icon-play"></span>1000</span></button>
     <div id="tick-counter">0</div>
     <span style="flex:1"></span>
     <button class="tbtn" id="btnZoomOut" title="Zoom out" disabled>−</button>
@@ -375,15 +411,14 @@ function getWebviewHtml() {
     <span id="file-label">No file loaded</span>
   </div>
 
-  <div id="statusbar">
-    <span id="status-text">Waiting for synthesis…</span>
-    <span id="status-dot" class="loading"></span>
-  </div>
-
   <div id="io-panel-wrap">
     <div id="io-panel-header">
+      <div id="toolbar-status">
+        <span id="status-text">Waiting for synthesis…</span>
+        <span id="status-dot" class="loading"></span>
+      </div>
       <span id="io-panel-title">Input Controls</span>
-      <button id="btnIoCollapse" title="Collapse/expand">🔼</button>
+      <button id="btnIoCollapse" title="Collapse/expand"><span class="icon-collapse-left"></span></button>
     </div>
     <div id="io-panel-body">
       <div id="io-panel-empty">No file loaded.</div>
@@ -440,11 +475,11 @@ function getWebviewHtml() {
 
     btnIoCollapse.addEventListener('click', () => {
       const collapsed = ioPanelBody.classList.toggle('collapsed');
-      btnIoCollapse.textContent = collapsed ? '🔽' : '🔼';
+      btnIoCollapse.innerHTML = collapsed ? '<span class="icon-collapse-right"></span>' : '<span class="icon-collapse-left"></span>';
+      btnIoCollapse.title = collapsed ? 'Expand input controls' : 'Collapse input controls';
     });
 
-    const btnStart   = document.getElementById('btnStart');
-    const btnPause   = document.getElementById('btnPause');
+    const btnPlayPause = document.getElementById('btnPlayPause');
     const btnFast    = document.getElementById('btnFast');
     const btnStep    = document.getElementById('btnStep');
     const btnStep10  = document.getElementById('btnStep10');
@@ -480,18 +515,22 @@ function getWebviewHtml() {
     function syncButtons() {
       if (!circuit) return;
       const running = circuit.running;
-      btnStart.disabled = running;
-      btnPause.disabled = !running;
+      btnPlayPause.disabled = false;
+      btnPlayPause.innerHTML = running ? '<span class="icon-pause"></span>' : '<span class="icon-play"></span>';
+      btnPlayPause.title = running ? 'Pause simulation' : 'Start simulation';
       btnFast .disabled = running;
       btnStep .disabled = running;
       btnStep10.disabled = running;
       btnStep1000.disabled = running;
-      btnStart.classList.toggle('active', false);
-      btnPause.classList.toggle('active', running);
+      btnPlayPause.classList.toggle('active', running);
     }
 
-    btnStart.addEventListener('click', () => { if (!circuit) return; circuit.start(); startTickTimer(); syncButtons(); });
-    btnPause.addEventListener('click', () => { if (!circuit) return; circuit.stop(); stopTickTimer(); syncButtons(); });
+    btnPlayPause.addEventListener('click', () => {
+      if (!circuit) return;
+      if (circuit.running) { circuit.stop(); stopTickTimer(); }
+      else { circuit.start(); startTickTimer(); }
+      syncButtons();
+    });
     btnFast.addEventListener('click', () => {
       if (!circuit) return;
       for (let i = 0; i < 100; i++) circuit.updateGates();
@@ -707,7 +746,6 @@ function getWebviewHtml() {
         monWrap.classList.add('visible');
         resizeH.classList.add('visible');
 
-        btnStart.disabled = false;
         btnFast .disabled = false;
         btnStep .disabled = false;
         btnStep10.disabled = false;
@@ -715,7 +753,6 @@ function getWebviewHtml() {
         btnFit  .disabled = false;
         btnZoomIn.disabled = false;
         btnZoomOut.disabled = false;
-        btnPause.disabled = true;
 
         setStatus('Ready', 'ok');
         fileLabel.textContent = fileName;
@@ -744,7 +781,7 @@ function getWebviewHtml() {
       if (msg.type === 'loading') {
         setStatus('Synthesising ' + msg.fileName, 'loading');
         fileLabel.textContent = msg.fileName;
-        [btnStart,btnPause,btnFast,btnStep,btnStep10,btnStep1000,btnFit,btnZoomIn,btnZoomOut].forEach(b => b.disabled = true);
+        [btnPlayPause,btnFast,btnStep,btnStep10,btnStep1000,btnFit,btnZoomIn,btnZoomOut].forEach(b => b.disabled = true);
       }
 
       if (msg.type === 'circuit') {

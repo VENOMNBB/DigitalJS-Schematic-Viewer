@@ -16,7 +16,8 @@ This extension uses the **live server-side synthesis API** from digitaljs.tilk.e
   - Multi-bit inputs get an editable value box.
   - Outputs get a status lamp.
   - Clock signals get a `[value][▲▼]` stepper to adjust their period in ticks, plus the standard step buttons below for precise manual ticking.
-  - The whole panel can be hidden/shown with the 🔽 / 🔼 arrow next to the **Input Controls** label.
+  - A synthesis status indicator (circular lamp + label) sits at the start of the bar, separated from the **Input Controls** label by a divider.
+  - The whole panel can be hidden/shown with the arrow next to the **Input Controls** label.
 - **Full circuit simulation** inside VSCode with Start / Pause / Step (1 / 10 / 100 / 1000 ticks) controls.
 - **Live tick counter** updates in real time while simulation runs.
 - **Waveform monitor panel** with per-signal traces, zoom (+/−), scroll (◀ ▶), Live mode, and a live range display.
@@ -85,8 +86,7 @@ There are a few options visible in the sidebar parameters panel that are current
 
 | Button | Action |
 |--------|--------|
-| ▶ | Start simulation |
-| ⏸ | Pause simulation |
+| ▶ / ⏸ | Start simulation / Pause simulation (single toggle button) |
 | ▶ 1 | Step 1 tick |
 | ▶ 10 | Step 10 ticks |
 | ▶ 100 | Step 100 ticks |
@@ -99,7 +99,8 @@ There are a few options visible in the sidebar parameters panel that are current
 
 | Control | Action |
 |---------|--------|
-| 🔽 / 🔼 (next to panel title) | Show / hide the Input Controls bar |
+| Circular lamp + label (start of bar) | Synthesis status: grey/yellow = synthesising, green = ready, red = error |
+| ◀ / ▶ (next to panel title) | Collapse / expand the Input Controls bar |
 | Toggle switch | Drive a single-bit input high/low |
 | Value box | Edit a multi-bit input's value (decimal by default) |
 | Lamp | Read-only indicator for an output signal |
