@@ -10,14 +10,20 @@ This extension uses the **live server-side synthesis API** from digitaljs.tilk.e
 
 ## Features
 
-- **One-command workflow** — Click the **DigitalJS** icon in the top right corner of the editor window or right-click any `.v` / `.sv` file → **Open in DigitalJS**.
-- **Full circuit simulation** inside VSCode with Start / Pause / Fast-forward / Step controls.
+- **Two-button workflow** — Click the **DigitalJS** icon in the top right corner of the editor window to synthesise the active `.v` / `.sv` file immediately using default settings. Use the **DigitalJS** icon in the Activity Bar (or right-click → **Open in DigitalJS**) to open the **Parameters** sidebar first and tweak synthesis/simulation options before running.
+- **Input Controls panel** — a dedicated bar above the schematic for driving circuit inputs live during simulation:
+  - Single-bit inputs (`rst`, `en`, …) get compact toggle switches.
+  - Multi-bit inputs get an editable value box.
+  - Outputs get a status lamp.
+  - Clock signals get a `[value][▲▼]` stepper to adjust their period in ticks, plus the standard step buttons below for precise manual ticking.
+  - The whole panel can be hidden/shown with the 🔽 / 🔼 arrow next to the **Input Controls** label.
+- **Full circuit simulation** inside VSCode with Start / Pause / Step (1 / 10 / 100 / 1000 ticks) controls.
 - **Live tick counter** updates in real time while simulation runs.
 - **Waveform monitor panel** with per-signal traces, zoom (+/−), scroll (◀ ▶), Live mode, and a live range display.
 - **Mouse-wheel zoom** on the circuit diagram, centered on cursor.
 - **Auto-fit** on load — circuit scales to fill the available panel space (*still a bit buggy*).
 - **Draggable resize handle** between the circuit and waveform panels.
-- **Singleton panel** — re-running the command on a new file reloads the same panel, no duplicates.
+- **Singleton panel** — re-running synthesis on a new file reloads the same panel, no duplicates.
 - **No bundled binaries** — synthesis runs on the DigitalJS server, rendering uses CDN-loaded libraries
 
 ## Requirements
@@ -46,14 +52,26 @@ code --install-extension digitaljs-schematic-viewer-x.x.x
 
 ## Usage
 
-1. Open a `.v` or `.sv` file in the editor
-2. Click the **DigitalJS** icon in the top right corner of the editor window. (Alternatively: Right-click in the **editor** or **Explorer** → **Open in DigitalJS**
-   — or `Ctrl+Shift+P` → **DigitalJS: Open in DigitalJS**).
-3. Open the DigitalJS Activity Bar to tweak Synthesis parameters.
-4. The extension POSTs your file to the DigitalJS synthesis API
-5. The synthesised circuit appears in a panel beside your editor
-6. Use the toolbar to **Start**, **Pause**, **Step**, or **Fast-forward** the simulation
-7. Hover over wires in the circuit to add signals to the waveform monitor
+There are two ways to run synthesis:
+
+**Quick synthesis (defaults)**
+1. Open a `.v` or `.sv` file in the editor.
+2. Click the **DigitalJS** icon in the top right corner of the editor window.
+3. The file is synthesised immediately with default settings — no extra panel opens, your focus stays in the editor.
+
+**Synthesis with custom parameters**
+1. Open a `.v` or `.sv` file in the editor.
+2. Click the **DigitalJS** icon in the Activity Bar (left-hand side), or right-click in the **editor** or **Explorer** → **Open in DigitalJS**, or `Ctrl+Shift+P` → **DigitalJS: Open in DigitalJS**.
+3. This opens the **Parameters** sidebar without synthesising yet. Adjust synthesis/simulation options as needed.
+4. Click **Synthesize Circuit** in the sidebar to run.
+
+In both cases:
+
+5. The extension POSTs your file to the DigitalJS synthesis API.
+6. The synthesised circuit appears in a panel beside your editor, with the **Input Controls** bar populated for any top-level inputs/clocks in the design.
+7. Use the toolbar to **Start**, **Pause**, or **Step** the simulation (1 / 10 / 100 / 1000 ticks at a time).
+8. Drive inputs directly from the **Input Controls** bar — switch toggles, edit multi-bit values, or adjust a clock's period — while the simulation runs.
+9. Hover over wires in the circuit to add signals to the waveform monitor.
 
 ## Work in Progress (UI Stubs)
 
@@ -69,11 +87,23 @@ There are a few options visible in the sidebar parameters panel that are current
 |--------|--------|
 | ▶ | Start simulation |
 | ⏸ | Pause simulation |
-| ⏩ | Fast-forward (100 gate updates, no re-render) |
-| → | Single step |
+| ▶ 1 | Step 1 tick |
+| ▶ 10 | Step 10 ticks |
+| ▶ 100 | Step 100 ticks |
+| ▶ 1000 | Step 1000 ticks |
 | `N` (tick counter) | Current simulation tick |
 | − / + | Zoom circuit out / in |
 | ⊡ | Fit circuit to panel |
+
+**Input Controls panel:**
+
+| Control | Action |
+|---------|--------|
+| 🔽 / 🔼 (next to panel title) | Show / hide the Input Controls bar |
+| Toggle switch | Drive a single-bit input high/low |
+| Value box | Edit a multi-bit input's value (decimal by default) |
+| Lamp | Read-only indicator for an output signal |
+| `[value][▲▼]` (clock rows) | Set the clock's period in ticks |
 
 **Waveform toolbar:**
 
