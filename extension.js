@@ -94,7 +94,15 @@ function getWebviewHtml() {
     }
     .tbtn:hover:not(:disabled) { background: #ffffff; }
     .tbtn:disabled { opacity: 0.35; cursor: default; }
-    .tbtn.active { background: #005a9e; border-color: #007acc; }
+    .tbtn.active { background: #34afff; border-color: #34afff; }
+    .tbtn.step1 { border-color: #34afff; color: #34afff; }
+    .tbtn.step1:hover:not(:disabled) { background: #34afff; color: #1e1e1e; }
+    .tbtn.step10 { border-color: #34afff; color: #34afff; }
+    .tbtn.step10:hover:not(:disabled) { background: #34afff; color: #1e1e1e; }
+    .tbtn.step100 { border-color: #34afff; color: #34afff; }
+    .tbtn.step100:hover:not(:disabled) { background: #34afff; color: #1e1e1e; }
+    .tbtn.step1000 { border-color: #34afff; color: #34afff; }
+    .tbtn.step1000:hover:not(:disabled) { background: #34afff; color: #1e1e1e; }
 
     #tick-counter {
       background: #1e1e1e; color: #9cdcfe;
@@ -108,6 +116,127 @@ function getWebviewHtml() {
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       max-width: 200px;
     }
+
+    /* ── input control panel ── */
+    #io-panel-wrap {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: #252526;
+      border-bottom: 1px solid #444;
+    }
+    #io-panel-header {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 8px;
+      background: #2c2c2c;
+      border-bottom: 1px solid #444;
+    }
+    #io-panel-title { color: #ccc; font-size: 12px; font-weight: 400; }
+    #btnIoCollapse {
+      background: none; border: none; color: #ccc;
+      font-size: 16px; line-height: 1; cursor: pointer;
+      padding: 0 2px; min-width: 0; height: auto;
+    }
+    #btnIoCollapse:hover { color: #fff; background: none; }
+    #io-panel-body {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      padding: 6px 8px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    #io-panel-body.collapsed { display: none; }
+    #io-panel-empty { color: #888; font-size: 12px; }
+    #io-panel-empty.hidden { display: none; }
+    #io-panel, #io-clock-panel {
+      display: contents;
+    }
+    #io-panel form, #io-panel form > [data-iopanel] {
+      display: contents;
+    }
+    .io-row {
+      display: flex; align-items: center; gap: 8px;
+      background: #2d2d2d; border: 1px solid #444; border-radius: 4px;
+      padding: 3px 6px;
+      box-sizing: border-box;
+    }
+    .io-row > * {
+      display: flex; align-items: center;
+    }
+    .io-row > span:empty { display: none; }
+    .io-row label {
+      color: #ddd; font-size: 11px; font-family: monospace;
+      line-height: 1; min-width: 0; white-space: nowrap;
+    }
+    .io-row select {
+      background: #1e1e1e; color: #eee;
+      border: 1px solid #555; border-radius: 3px;
+      font-size: 10px; padding: 1px 2px;
+    }
+    .io-row input[type="text"] {
+      background: #1e1e1e; color: #9cdcfe;
+      border: 1px solid #555; border-radius: 3px;
+      font-family: monospace; font-size: 11px;
+      padding: 2px 4px; width: 58px;
+    }
+    .io-row input[type="number"] {
+      background: #1e1e1e; color: #eee;
+      border: 1px solid #555; border-radius: 3px 0 0 3px;
+      border-right: none;
+      font-size: 11px; padding: 2px 4px; width: 36px;
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+    .io-row input[type="number"]::-webkit-outer-spin-button,
+    .io-row input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .io-stepper {
+      display: flex; align-items: stretch;
+    }
+    .io-stepper-arrows {
+      display: flex; flex-direction: column;
+      border: 1px solid #555; border-radius: 0 3px 3px 0;
+      overflow: hidden;
+    }
+    .io-stepper-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 16px; height: 11px; padding: 0;
+      background: #3a3a3a; color: #eee;
+      border: none; line-height: 1; cursor: pointer;
+      font-size: 7px;
+      transition: background 0.1s;
+    }
+    .io-stepper-btn + .io-stepper-btn { border-top: 1px solid #555; }
+    .io-stepper-btn:hover:not(:disabled) { background: #ffffff; }
+    .io-stepper-btn:disabled { opacity: 0.35; cursor: default; }
+    .io-toggle { display: inline-flex; align-items: center; cursor: pointer; }
+    .io-toggle input { display: none; }
+    .io-toggle-track {
+      display: block;
+      width: 28px; height: 16px; background: #555;
+      border: 1px solid #777; border-radius: 8px;
+      position: relative; transition: background 0.15s;
+    }
+    .io-toggle-thumb {
+      position: absolute; top: 1px; left: 1px;
+      width: 12px; height: 12px; background: #ccc;
+      border-radius: 50%; transition: left 0.15s;
+    }
+    .io-toggle input:checked + .io-toggle-track { background: #005a9e; border-color: #007acc; }
+    .io-toggle input:checked + .io-toggle-track .io-toggle-thumb { left: 14px; background: #fff; }
+
+    .io-lamp { display: inline-flex; align-items: center; cursor: pointer; }
+    .io-lamp input { display: none; }
+    .io-lamp-dot {
+      display: block;
+      width: 22px; height: 12px; border-radius: 999px;
+      background: #ff8c00; box-shadow: 0 0 4px 1px rgba(255,140,0,0.5);
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .io-lamp input:checked + .io-lamp-dot { background: #209d05; box-shadow: 0 0 6px 1px #209d05; }
 
     /* ── status bar ── */
     #statusbar {
@@ -234,8 +363,10 @@ function getWebviewHtml() {
   <div id="toolbar">
     <button class="tbtn" id="btnStart" title="Start simulation" disabled>▶</button>
     <button class="tbtn" id="btnPause" title="Pause simulation" disabled>⏸</button>
-    <button class="tbtn" id="btnFast"  title="Fast-forward (no render)" disabled>⏩</button>
-    <button class="tbtn" id="btnStep"  title="Single step"    disabled>→</button>
+    <button class="tbtn step1" id="btnStep"     title="Step 1"    disabled>▶ 1</button>
+    <button class="tbtn step10" id="btnStep10"   title="Step 10"   disabled>▶ 10</button>
+    <button class="tbtn step100" id="btnFast"     title="Step 100 (no render)" disabled>▶ 100</button>
+    <button class="tbtn step1000" id="btnStep1000" title="Step 1000" disabled>▶ 1000</button>
     <div id="tick-counter">0</div>
     <span style="flex:1"></span>
     <button class="tbtn" id="btnZoomOut" title="Zoom out" disabled>−</button>
@@ -247,6 +378,18 @@ function getWebviewHtml() {
   <div id="statusbar">
     <span id="status-text">Waiting for synthesis…</span>
     <span id="status-dot" class="loading"></span>
+  </div>
+
+  <div id="io-panel-wrap">
+    <div id="io-panel-header">
+      <span id="io-panel-title">Input Controls</span>
+      <button id="btnIoCollapse" title="Collapse/expand">🔼</button>
+    </div>
+    <div id="io-panel-body">
+      <div id="io-panel-empty">No file loaded.</div>
+      <div id="io-panel"></div>
+      <div id="io-clock-panel"></div>
+    </div>
   </div>
 
   <div id="main">
@@ -264,7 +407,7 @@ function getWebviewHtml() {
         <span id="scale-label" style="color:#aaa;font-size:11px;padding:0 4px;">scale <span id="scale-val">1</span></span>
         <button class="tbtn" id="btnWLeft"    title="Scroll left">◀</button>
         <button class="tbtn" id="btnWRight"   title="Scroll right">▶</button>
-        <button class="tbtn" id="btnWLive"    title="Jump to live">Live</button>
+        <button class="tbtn" id="btnWLive"    title="Pause/resume live waveform">Live</button>
         <span id="range-label" style="color:#aaa;font-size:11px;padding:0 6px;">range <span id="range-start">0</span> – <span id="range-end">0</span></span>
       </div>
       <div id="monitor"></div>
@@ -280,6 +423,8 @@ function getWebviewHtml() {
 
     let circuit = null, monitor = null, monitorview = null, paper = null;
     let tickInterval = null;
+    let ioPanelView = null;
+    let currentFileName = null;
 
     const statusText = document.getElementById('status-text');
     const statusDot  = document.getElementById('status-dot');
@@ -288,10 +433,22 @@ function getWebviewHtml() {
     const monWrap    = document.getElementById('monitor-wrap');
     const resizeH    = document.getElementById('resize-handle');
 
+    const ioPanelBody   = document.getElementById('io-panel-body');
+    const ioPanelEmpty  = document.getElementById('io-panel-empty');
+    const ioClockPanel  = document.getElementById('io-clock-panel');
+    const btnIoCollapse = document.getElementById('btnIoCollapse');
+
+    btnIoCollapse.addEventListener('click', () => {
+      const collapsed = ioPanelBody.classList.toggle('collapsed');
+      btnIoCollapse.textContent = collapsed ? '🔽' : '🔼';
+    });
+
     const btnStart   = document.getElementById('btnStart');
     const btnPause   = document.getElementById('btnPause');
     const btnFast    = document.getElementById('btnFast');
     const btnStep    = document.getElementById('btnStep');
+    const btnStep10  = document.getElementById('btnStep10');
+    const btnStep1000 = document.getElementById('btnStep1000');
     const btnFit     = document.getElementById('btnFit');
     const btnZoomIn  = document.getElementById('btnZoomIn');
     const btnZoomOut = document.getElementById('btnZoomOut');
@@ -327,6 +484,8 @@ function getWebviewHtml() {
       btnPause.disabled = !running;
       btnFast .disabled = running;
       btnStep .disabled = running;
+      btnStep10.disabled = running;
+      btnStep1000.disabled = running;
       btnStart.classList.toggle('active', false);
       btnPause.classList.toggle('active', running);
     }
@@ -339,6 +498,16 @@ function getWebviewHtml() {
       updateTick();
     });
     btnStep.addEventListener('click', () => { if (!circuit) return; circuit.updateGates(); updateTick(); });
+    btnStep10.addEventListener('click', () => {
+      if (!circuit) return;
+      for (let i = 0; i < 10; i++) circuit.updateGates();
+      updateTick();
+    });
+    btnStep1000.addEventListener('click', () => {
+      if (!circuit) return;
+      for (let i = 0; i < 1000; i++) circuit.updateGates();
+      updateTick();
+    });
 
     let currentScale = 1;
     const ZOOM_MIN = 0.1, ZOOM_MAX = 4, ZOOM_STEP = 1.2;
@@ -399,16 +568,118 @@ function getWebviewHtml() {
       scaleVal.textContent   = ppt >= 1 ? Math.round(ppt) : ('1/' + Math.round(1/ppt));
       rangeStart.textContent = start;
       rangeEnd.textContent   = end;
+      btnWLive.textContent   = monitorview.live ? 'Live' : 'Paused';
+      btnWLive.title         = monitorview.live ? 'Pause live waveform' : 'Resume live waveform';
+      btnWLive.classList.toggle('active', monitorview.live);
     }
 
     btnPptUp  .addEventListener('click', () => { if (monitorview) { monitorview.pixelsPerTick *= 2; updateRangeDisplay(); } });
     btnPptDown.addEventListener('click', () => { if (monitorview) { monitorview.pixelsPerTick /= 2; updateRangeDisplay(); } });
     btnWLeft  .addEventListener('click', () => { if (monitorview) { monitorview.live = false; monitorview.start -= monitorview._width / monitorview.pixelsPerTick / 4; updateRangeDisplay(); } });
     btnWRight .addEventListener('click', () => { if (monitorview) { monitorview.live = false; monitorview.start += monitorview._width / monitorview.pixelsPerTick / 4; updateRangeDisplay(); } });
-    btnWLive  .addEventListener('click', () => { if (monitorview) { monitorview.live = true; updateRangeDisplay(); } });
+    btnWLive  .addEventListener('click', () => { if (monitorview) { monitorview.live = !monitorview.live; updateRangeDisplay(); } });
 
     // Ensure settings are respected during load
     let currentSettings = {};
+
+    function isClockCell(cell) {
+      return cell.get('type') === 'Clock';
+    }
+
+    function makeIoRow(labelText) {
+      const row = document.createElement('div');
+      row.className = 'io-row';
+      const label = document.createElement('label');
+      label.textContent = labelText;
+      row.appendChild(label);
+      return row;
+    }
+
+    function renderClockPanel() {
+      ioClockPanel.innerHTML = '';
+      if (!circuit) return;
+      const clocks = circuit._graph.getElements().filter(isClockCell);
+      for (const cell of clocks) {
+        const name = cell.get('net') || cell.get('label') || cell.id;
+        const row = makeIoRow(name + ' (clk)');
+
+        const periodWrap = document.createElement('div');
+        periodWrap.className = 'io-stepper';
+
+        const period = document.createElement('input');
+        period.type = 'number';
+        period.min = 1;
+        period.title = 'Clock period (ticks)';
+        period.value = cell.get('propagation') || 100;
+        period.addEventListener('change', () => {
+          const v = Math.max(1, parseInt(period.value, 10) || 100);
+          period.value = v;
+          cell.set('propagation', v);
+        });
+
+        const periodArrows = document.createElement('div');
+        periodArrows.className = 'io-stepper-arrows';
+
+        const periodUp = document.createElement('button');
+        periodUp.type = 'button';
+        periodUp.className = 'io-stepper-btn';
+        periodUp.textContent = '▲';
+        periodUp.title = 'Increase period';
+
+        const periodDown = document.createElement('button');
+        periodDown.type = 'button';
+        periodDown.className = 'io-stepper-btn';
+        periodDown.textContent = '▼';
+        periodDown.title = 'Decrease period';
+
+        function stepPeriod(delta) {
+          const v = Math.max(1, (parseInt(period.value, 10) || 100) + delta);
+          period.value = v;
+          cell.set('propagation', v);
+        }
+        periodUp.addEventListener('click', () => stepPeriod(1));
+        periodDown.addEventListener('click', () => stepPeriod(-1));
+
+        periodArrows.appendChild(periodUp);
+        periodArrows.appendChild(periodDown);
+
+        periodWrap.appendChild(period);
+        periodWrap.appendChild(periodArrows);
+        row.appendChild(periodWrap);
+
+        ioClockPanel.appendChild(row);
+      }
+    }
+
+    function refreshIoEmptyState() {
+      const hasContent = ioPanelBody.querySelector('.io-row') !== null;
+      ioPanelEmpty.classList.toggle('hidden', hasContent);
+    }
+
+    function buildIoPanel(fileName) {
+      currentFileName = fileName;
+      document.getElementById('io-panel').innerHTML = '';
+      ioClockPanel.innerHTML = '';
+
+      ioPanelView = new digitaljs.IOPanelView({
+        model: circuit,
+        el: $('#io-panel'),
+        rowMarkup: '<div class="io-row"></div>',
+        colMarkup: '<span></span>',
+        labelMarkup: '<label></label>',
+        buttonMarkup: '<label class="io-toggle"><input type="checkbox"><span class="io-toggle-track"><span class="io-toggle-thumb"></span></span></label>',
+        lampMarkup: '<label class="io-lamp"><input type="checkbox" disabled><span class="io-lamp-dot"></span></label>',
+        inputMarkup: '<input type="text">'
+      });
+      // Default multi-bit value boxes to unsigned decimal
+      $('#io-panel select[name="base"]').each(function () {
+        $(this).val('dec').trigger('input');
+      });
+
+      renderClockPanel();
+
+      refreshIoEmptyState();
+    }
 
     function loadCircuit(json, fileName, settings) {
       if (tickInterval) clearInterval(tickInterval);
@@ -425,6 +696,7 @@ function getWebviewHtml() {
         circuit = new digitaljs.Circuit(json);
         monitor     = new digitaljs.Monitor(circuit);
         monitorview = new digitaljs.MonitorView({ model: monitor, el: $('#monitor') });
+        buildIoPanel(fileName);
 
         circuit.on('changeRunning', () => {
           if (circuit.running) { startTickTimer(); } else { stopTickTimer(); }
@@ -438,6 +710,8 @@ function getWebviewHtml() {
         btnStart.disabled = false;
         btnFast .disabled = false;
         btnStep .disabled = false;
+        btnStep10.disabled = false;
+        btnStep1000.disabled = false;
         btnFit  .disabled = false;
         btnZoomIn.disabled = false;
         btnZoomOut.disabled = false;
@@ -470,7 +744,7 @@ function getWebviewHtml() {
       if (msg.type === 'loading') {
         setStatus('Synthesising ' + msg.fileName, 'loading');
         fileLabel.textContent = msg.fileName;
-        [btnStart,btnPause,btnFast,btnStep,btnFit,btnZoomIn,btnZoomOut].forEach(b => b.disabled = true);
+        [btnStart,btnPause,btnFast,btnStep,btnStep10,btnStep1000,btnFit,btnZoomIn,btnZoomOut].forEach(b => b.disabled = true);
       }
 
       if (msg.type === 'circuit') {
@@ -599,6 +873,8 @@ class DigitalJSSettingsProvider {
     h2 { font-size: 1.1em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px;}
     h2:first-child { margin-top: 0; }
     .setting-group { margin-bottom: 12px; }
+    .setting-row { display: flex; gap: 16px; margin-bottom: 12px; }
+    .setting-row .setting-group { margin-bottom: 0; }
     label { display: block; margin-bottom: 4px; font-size: 0.9em; }
     input[type="checkbox"] { margin-right: 6px; cursor: pointer; }
     input[type="radio"] { margin-right: 6px; cursor: pointer; }
@@ -608,6 +884,7 @@ class DigitalJSSettingsProvider {
     #active-file-alert { color: var(--vscode-editorInfo-foreground); font-size: 0.85em; margin-bottom: 15px; word-break: break-all; }
     
     .radio-group { margin-left: 24px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .radio-group.hidden { display: none; }
     .radio-group label { color: var(--vscode-foreground); }
     .radio-group input:disabled + span { opacity: 0.5; }
   </style>
@@ -616,11 +893,13 @@ class DigitalJSSettingsProvider {
   <div id="active-file-alert">No file loaded.</div>
   
   <h2>Circuit synthesis</h2>
-  <div class="setting-group">
-    <label><input type="checkbox" id="opt-optimize" checked> Optimize in Yosys</label>
-  </div>
-  <div class="setting-group">
-    <label><input type="checkbox" id="opt-simplify" checked> Simplify diagram</label>
+  <div class="setting-row">
+    <div class="setting-group">
+      <label><input type="checkbox" id="opt-optimize" checked> Optimize in Yosys</label>
+    </div>
+    <div class="setting-group">
+      <label><input type="checkbox" id="opt-simplify" checked> Simplify diagram</label>
+    </div>
   </div>
   <div class="setting-group">
     <label>FSM transform (experimental)</label>
@@ -666,16 +945,11 @@ class DigitalJSSettingsProvider {
 
     const lgCheckbox = document.getElementById('opt-logicGates');
     const lgRadios = document.querySelectorAll('input[name="logicGateType"]');
-    
+    const lgRadioGroup = document.getElementById('logic-gate-radios');
+
     function updateRadioState() {
-      lgRadios.forEach(r => {
-        r.disabled = !lgCheckbox.checked;
-        if (r.disabled) {
-           r.nextElementSibling.style.opacity = "0.5";
-        } else {
-           r.nextElementSibling.style.opacity = "1";
-        }
-      });
+      lgRadioGroup.classList.toggle('hidden', !lgCheckbox.checked);
+      lgRadios.forEach(r => { r.disabled = !lgCheckbox.checked; });
     }
 
     // Toggle radio enabled state on checkbox change
@@ -719,6 +993,41 @@ class DigitalJSSettingsProvider {
 
 let settingsProvider;
 
+const DEFAULT_SYNTH_SETTINGS = {
+  optimize: true,
+  simplify: true,
+  fsm: 'nomap',
+  logicGates: false,
+  logicGateType: 'unprocessed',
+  synthMode: 'server',
+  delay: false,
+  simEngine: 'webworker'
+};
+
+function resolveActiveVerilogFile() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showErrorMessage('DigitalJS: No active file. Open a .v or .sv file first.');
+    return null;
+  }
+
+  const filePath = editor.document.fileName;
+  const ext = filePath.split('.').pop().toLowerCase();
+  if (!['v', 'sv'].includes(ext)) {
+    vscode.window.showErrorMessage('DigitalJS: Active file is not a .v or .sv file.');
+    return null;
+  }
+
+  const fileText = editor.document.getText();
+  if (!fileText.trim()) {
+    vscode.window.showWarningMessage('DigitalJS: File is empty.');
+    return null;
+  }
+
+  const fileName = filePath.split(/[\\/]/).pop();
+  return { fileName, fileText, document: editor.document };
+}
+
 function activate(context) {
   settingsProvider = new DigitalJSSettingsProvider(context);
 
@@ -726,34 +1035,29 @@ function activate(context) {
     vscode.window.registerWebviewViewProvider('digitaljs-settings', settingsProvider)
   );
 
+  // Sidebar icon: only reveals the parameters panel, no auto-synthesis.
   context.subscriptions.push(
     vscode.commands.registerCommand('digitaljsOnline.open', () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        vscode.window.showErrorMessage('DigitalJS: No active file. Open a .v or .sv file first.');
-        return;
-      }
-      
-      const filePath = editor.document.fileName;
-      const ext = filePath.split('.').pop().toLowerCase();
-      if (!['v', 'sv'].includes(ext)) {
-        vscode.window.showErrorMessage('DigitalJS: Active file is not a .v or .sv file.');
-        return;
-      }
-      
-      const fileText = editor.document.getText();
-      if (!fileText.trim()) {
-        vscode.window.showWarningMessage('DigitalJS: File is empty.');
-        return;
-      }
-      
-      const fileName = filePath.split(/[\\/]/).pop();
+      const file = resolveActiveVerilogFile();
+      if (!file) return;
 
       // Pass the file context to the Sidebar provider
-      settingsProvider.setFile(fileName, fileText, editor.document);
+      settingsProvider.setFile(file.fileName, file.fileText, file.document);
 
       // Focus the new sidebar panel
       vscode.commands.executeCommand('digitaljs-settings.focus');
+    })
+  );
+
+  // Editor-title icon: synthesizes immediately with default settings,
+  // without opening/focusing the parameters sidebar.
+  context.subscriptions.push(
+    vscode.commands.registerCommand('digitaljsOnline.synthesizeDefault', () => {
+      const file = resolveActiveVerilogFile();
+      if (!file) return;
+
+      settingsProvider.setFile(file.fileName, file.fileText, file.document);
+      settingsProvider.executeSynthesis(DEFAULT_SYNTH_SETTINGS);
     })
   );
 }

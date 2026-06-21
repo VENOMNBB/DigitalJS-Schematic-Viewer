@@ -2,7 +2,7 @@
   "name": "digitaljs-schematic-viewer",
   "displayName": "DigitalJS Schematic Viewer",
   "description": "Synthesises Verilog/SystemVerilog files via the DigitalJS server and renders the interactive circuit simulator directly inside VSCode.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "VENOMNBB",
   "icon": "icon.png",
   "license": "MIT",
@@ -18,20 +18,27 @@
     "vscode": "^1.60.0"
   },
   "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Visualization",
+    "Education",
     "Other"
   ],
   "keywords": [
-    "verilog",
-    "systemverilog",
-    "digitaljs",
-    "simulation",
-    "hdl",
-    "fpga",
-    "schematic",
-    "circuit"
+    "Verilog",
+    "SystemVerilog",
+    "DigitalJS",
+    "Simulation",
+    "HDL",
+    "Yosys",
+    "Schematic",
+    "Circuit",
+    "Viewer",
+    "Waveform"
   ],
   "activationEvents": [
     "onCommand:digitaljsOnline.open",
+    "onCommand:digitaljsOnline.synthesizeDefault",
     "onView:digitaljs-settings"
   ],
   "main": "./extension.js",
@@ -61,12 +68,18 @@
         "title": "Open in DigitalJS",
         "category": "DigitalJS",
         "icon": "icon.png"
+      },
+      {
+        "command": "digitaljsOnline.synthesizeDefault",
+        "title": "Synthesize in DigitalJS (defaults)",
+        "category": "DigitalJS",
+        "icon": "icon.png"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "digitaljsOnline.open",
+          "command": "digitaljsOnline.synthesizeDefault",
           "when": "resourceExtname == .v || resourceExtname == .sv",
           "group": "navigation"
         }
