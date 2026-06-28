@@ -2,7 +2,7 @@
   "name": "digitaljs-schematic-viewer",
   "displayName": "DigitalJS Schematic Viewer",
   "description": "Synthesises Verilog/SystemVerilog files via the DigitalJS server and renders the interactive circuit simulator directly inside VSCode.",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "VENOMNBB",
   "icon": "icon.png",
   "license": "MIT",
@@ -42,6 +42,10 @@
     "onView:digitaljs-settings"
   ],
   "main": "./extension.js",
+  "dependencies": {
+    "@yowasp/yosys": "release",
+    "yosys2digitaljs": "latest"
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [

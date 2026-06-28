@@ -1,16 +1,23 @@
 # DigitalJS Schematic Viewer for VSCode
 
-A VSCode extension that synthesises your Verilog / SystemVerilog files using the [DigitalJS](https://digitaljs.tilk.eu) server and renders the full interactive circuit simulator **directly inside a VSCode panel**.
+A VSCode extension that synthesises your Verilog / SystemVerilog files and renders the full interactive circuit simulator **directly inside a VSCode panel**.
+
+Synthesis can run either via the **DigitalJS online API** or fully **offline using local WebAssembly** (YoWASP + Yosys bundled in the extension).
 
 ## Why this exists
 
 The published [DigitalJS VSCode extension](https://marketplace.visualstudio.com/items?itemName=yuyichao.digitaljs) bundles an old, frozen version of `yosys2digitaljs` that fails on many modern constructs. The online version at [digitaljs.tilk.eu](https://digitaljs.tilk.eu) is actively maintained and handles these correctly.
 
-This extension uses the **live server-side synthesis API** from digitaljs.tilk.eu — so it stays up to date automatically — while rendering the circuit using the DigitalJS JavaScript library locally inside a VSCode webview. You get the full simulator experience without ever leaving your editor.
+This extension supports two synthesis backends:
+- **Server-side API** — POSTs to digitaljs.tilk.eu; stays up to date automatically.
+- **Local WebAssembly** — runs Yosys entirely inside a Node.js Worker thread via [@yowasp/yosys](https://github.com/YoWASP/yosys); no internet required for synthesis.
+
+In both cases, rendering and simulation run locally in the VSCode webview using the DigitalJS library loaded from jsDelivr CDN.
 
 ## Features
 
 - **Two-button workflow** — Click the **DigitalJS** icon in the top right corner of the editor window to synthesise the active `.v` / `.sv` file immediately using default settings. Use the **DigitalJS** icon in the Activity Bar (or right-click → **Open in DigitalJS**) to open the **Parameters** sidebar first and tweak synthesis/simulation options before running.
+- **Two synthesis modes** — choose between Server Side (online) and WebAssembly (local, offline) in the Parameters sidebar.
 - **Input Controls panel** — a dedicated bar above the schematic for driving circuit inputs live during simulation:
   - Single-bit inputs (`rst`, `en`, …) get compact toggle switches.
   - Multi-bit inputs get an editable value box.
@@ -25,12 +32,12 @@ This extension uses the **live server-side synthesis API** from digitaljs.tilk.e
 - **Auto-fit** on load — circuit scales to fill the available panel space (*still a bit buggy*).
 - **Draggable resize handle** between the circuit and waveform panels.
 - **Singleton panel** — re-running synthesis on a new file reloads the same panel, no duplicates.
-- **No bundled binaries** — synthesis runs on the DigitalJS server, rendering uses CDN-loaded libraries
 
 ## Requirements
 
 - VSCode 1.60 or later
-- Internet connection (synthesis API + CDN libraries)
+- Internet connection required for **Server Side synthesis** mode
+- No internet required for **WebAssembly synthesis** mode (Yosys WASM is bundled in the extension)
 
 ## Installation
 
@@ -44,12 +51,11 @@ This extension uses the **live server-side synthesis API** from digitaljs.tilk.e
 ```bash
 git clone https://github.com/VENOMNBB/DigitalJS-Schematic-Viewer.git
 cd DigitalJS-Schematic-Viewer
+npm install
 npm install -g @vscode/vsce
 vsce package
-code --install-extension digitaljs-schematic-viewer-x.x.x
+code --install-extension digitaljs-schematic-viewer-x.x.x.vsix
 ```
-
-*For the `npm install -g @vscode/vsce` command to work you need to install Node.js.*
 
 ## Usage
 
@@ -68,17 +74,23 @@ There are two ways to run synthesis:
 
 In both cases:
 
-5. The extension POSTs your file to the DigitalJS synthesis API.
-6. The synthesised circuit appears in a panel beside your editor, with the **Input Controls** bar populated for any top-level inputs/clocks in the design.
-7. Use the toolbar to **Start**, **Pause**, or **Step** the simulation (1 / 10 / 100 / 1000 ticks at a time).
-8. Drive inputs directly from the **Input Controls** bar — switch toggles, edit multi-bit values, or adjust a clock's period — while the simulation runs.
-9. Hover over wires in the circuit to add signals to the waveform monitor.
+5. The synthesised circuit appears in a panel beside your editor, with the **Input Controls** bar populated for any top-level inputs/clocks in the design.
+6. Use the toolbar to **Start**, **Pause**, or **Step** the simulation (1 / 10 / 100 / 1000 ticks at a time).
+7. Drive inputs directly from the **Input Controls** bar — switch toggles, edit multi-bit values, or adjust a clock's period — while the simulation runs.
+8. Hover over wires in the circuit to add signals to the waveform monitor.
 
-## Work in Progress (UI Stubs)
+## Synthesis modes
 
-There are a few options visible in the sidebar parameters panel that are currently placeholders mapped out for future updates:
+| Mode | Internet required | Speed | Notes |
+|------|------------------|-------|-------|
+| Server Side | Yes (synthesis + CDN) | Fast | Uses digitaljs.tilk.eu API; supports the widest range of constructs |
+| WebAssembly | CDN only | Slower on first use (WASM init) | Runs Yosys locally via [@yowasp/yosys](https://github.com/YoWASP/yosys); fully offline synthesis |
 
-- **WebAssembly Synthesis Mode:** Selecting "WebAssembly (faster and local)" will currently still default to the Server Side API. Local WASM integration (via YoWASP) is planned but not yet implemented.
+The default quick-synthesis button always uses **Server Side** mode. To use WebAssembly mode, open the Parameters sidebar and select **WebAssembly (local)** from the Synthesis mode dropdown before clicking **Synthesize Circuit**.
+
+On first use, WebAssembly mode downloads and caches the Yosys WASM binary (~50 MB). Subsequent runs are faster.
+
+## Work in Progress
 
 - **Simulation Engine / Delay:** The options for "Zero combinational propagation delay" and switching "Simulation engines" are visible in the UI but are not currently passed into the active JointJS/DigitalJS rendering engine.
 
@@ -118,6 +130,7 @@ There are a few options visible in the sidebar parameters panel that are current
 
 ## How it works
 
+**Server Side mode:**
 ```
 VSCode extension host (Node.js)
   └─ HTTPS POST → digitaljs.tilk.eu/api/yosys2digitaljs
@@ -128,19 +141,34 @@ VSCode extension host (Node.js)
                  └─ new digitaljs.MonitorView(…)  ← waveform panel
 ```
 
-Synthesis runs server-side (Yosys + yosys2digitaljs on the DigitalJS server). Everything else — rendering, simulation, interaction — runs locally in the VSCode webview using the DigitalJS npm package loaded from jsDelivr CDN. No binaries are bundled.
+**WebAssembly mode:**
+```
+VSCode extension host (Node.js)
+  └─ spawns Worker thread (wasm-worker.mjs, ESM)
+       └─ @yowasp/yosys → runs Yosys WASM locally
+       └─ yosys2digitaljs/core → converts netlist to circuit JSON
+            └─ postMessage → extension host
+                 └─ postMessage → Webview
+                      └─ new digitaljs.Circuit(json)   ← CDN library, runs locally
+                      └─ circuit.displayOn($('#paper')) ← JointJS diagram
+                      └─ new digitaljs.MonitorView(…)  ← waveform panel
+```
+
+The Worker thread is necessary because `@yowasp/yosys` is an ESM-only package that uses `import.meta.url` internally to locate its `.wasm` binaries — this only works in an ESM context, not in the CJS extension host.
 
 ## Known limitations
 
-- Requires an internet connection for both synthesis and CDN libraries
-- Synthesis is subject to the DigitalJS server's availability and supported constructs
+- CDN libraries (rendering/simulation) always require an internet connection
 - Very large designs may be slow to render (JointJS lays out all gates in the browser)
+- WebAssembly mode has a ~50 MB one-time WASM download on first use
+- WebAssembly mode uses `hierarchy -auto-top; proc; opt` internally, which may produce slightly different results than the server-side synthesis pipeline for complex designs
 
 ## Credits
 
 - [DigitalJS](https://github.com/tilk/digitaljs) by Marek Materzok (tilk) — the circuit simulator
 - [yosys2digitaljs](https://github.com/tilk/yosys2digitaljs) — the synthesis backend
 - [Yosys](https://github.com/YosysHQ/yosys) — the open-source synthesis framework powering it all
+- [YoWASP](https://yowasp.org/) — WebAssembly port of Yosys enabling local synthesis
 
 ## License
 

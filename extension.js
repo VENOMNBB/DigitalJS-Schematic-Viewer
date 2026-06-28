@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 const https  = require('https');
+const path   = require('path');
 
 let currentPanel = undefined;
 
@@ -38,6 +39,35 @@ function synthesise(fileName, source, settings) {
     req.on('error', reject);
     req.write(body);
     req.end();
+  });
+}
+
+// WASM synthesis runs in a worker_threads Worker (wasm-worker.mjs).
+// Reason: @yowasp/yosys is ESM-only and uses import.meta.url internally to
+// locate its .wasm binaries. The VS Code extension host is CJS, so
+// import.meta.url is undefined here — the Worker thread is the only context
+// where ESM imports and import.meta.url work correctly under Node.js.
+const { Worker } = require('worker_threads');
+
+function synthesiseWasm(fileName, source, settings) {
+  return new Promise((resolve, reject) => {
+    const workerPath = path.join(__dirname, 'wasm-worker.mjs');
+    const worker = new Worker(workerPath, {
+      workerData: { fileName, source, settings }
+    });
+
+    worker.on('message', (msg) => {
+      if (msg.ok) {
+        resolve(msg.result);
+      } else {
+        reject(new Error(msg.error));
+      }
+    });
+
+    worker.on('error',  (err) => reject(new Error('Worker error: ' + err.message)));
+    worker.on('exit',   (code) => {
+      if (code !== 0) reject(new Error(`WASM worker exited with code ${code}`));
+    });
   });
 }
 
@@ -888,8 +918,13 @@ class DigitalJSSettingsProvider {
       cancellable: false
     }, async () => {
       try {
-        const result = await synthesise(this.currentFile, this.currentSource, settings);
-        const circuitData = result.output ?? result;
+        let circuitData;
+        if (settings.synthMode === 'wasm') {
+          circuitData = await synthesiseWasm(this.currentFile, this.currentSource, settings);
+        } else {
+          const result = await synthesise(this.currentFile, this.currentSource, settings);
+          circuitData = result.output ?? result;
+        }
         currentPanel.webview.postMessage({ type: 'circuit', data: circuitData, fileName: this.currentFile, settings });
       } catch (err) {
         currentPanel.webview.postMessage({ type: 'error', message: err.message });
