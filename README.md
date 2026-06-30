@@ -94,6 +94,10 @@ On first use, WebAssembly mode downloads and caches the Yosys WASM binary (~50 M
 
 - **Simulation Engine / Delay:** The options for "Zero combinational propagation delay" and switching "Simulation engines" are visible in the UI but are not currently passed into the active JointJS/DigitalJS rendering engine.
 
+- **FSM Transform:** Working on proper implementation of this function. The existing setup does not work as per the intended design.
+
+- **Convert to logic gates:** Yet to be completely implemented.
+
 ## Toolbar reference
 
 | Button | Action |
