@@ -4,16 +4,68 @@ const path   = require('path');
 
 let currentPanel = undefined;
 
+// Maps our sidebar checkbox ids to the gate-kind names the yosys2digitaljs
+// "abc" option (and Yosys's own `abc -g` command) expects.
+const GATE_KIND_MAP = {
+  and:  'AND',
+  nand: 'NAND',
+  or:   'OR',
+  nor:  'NOR',
+  xor:  'XOR',
+  xnor: 'XNOR',
+  mux:  'MUX'
+};
+
+// Translates the settings object collected from the sidebar UI into the
+// options shape actually understood by the yosys2digitaljs library (which
+// powers the digitaljs.tilk.eu synthesis API). This shape differs from our
+// raw UI field names in two notable ways:
+//   - fsm: the library takes boolean|"nomap", where "nomap" means "run the
+//     fsm pass but keep it unmapped" (i.e. shown as one FSM circuit
+//     element) — NOT "skip the fsm pass", despite the similar name. Our UI
+//     value 'nomap' ("No FSM transform") means the opposite: skip fsm
+//     entirely, so it must map to fsm: false/undefined, not "nomap".
+//   - logic gate conversion is a single `abc: {type: "gates"|"lut", ...}`
+//     object rather than separate logicGates/logicGateType booleans.
+function buildYosysOptions(settings) {
+  const options = {
+    optimize: !!settings.optimize,
+    simplify: !!settings.simplify
+  };
+
+  if (settings.fsm === 'yes') {
+    options.fsm = true;            // full FSM transform (mapped down)
+  } else if (settings.fsm === 'nomacro') {
+    options.fsm = 'nomap';         // FSM kept as one circuit element
+  }
+  // settings.fsm === 'nomap' ("No FSM transform") -> omit fsm entirely
+
+  if (settings.fsmExpand) {
+    options.fsmexpand = true;
+  }
+
+  if (settings.logicGates) {
+    if (settings.logicGateType === 'subset') {
+      const subset = settings.logicGateSubset || {};
+      const kinds = Object.keys(GATE_KIND_MAP)
+        .filter(key => subset[key])
+        .map(key => GATE_KIND_MAP[key]);
+      if (kinds.length) {
+        options.abc = { type: 'gates', kinds };
+      }
+    } else if (settings.logicGateType === 'luts') {
+      options.abc = { type: 'lut', width: settings.lutWidth || 4 };
+    }
+    // 'unprocessed' ("Keep gates unprocessed") -> omit abc entirely
+  }
+
+  return options;
+}
+
 function synthesise(fileName, source, settings) {
   const body = JSON.stringify({
     files:   { [fileName]: source },
-    options: { 
-      optimize: settings.optimize,
-      simplify: settings.simplify,
-      fsm: settings.fsm,
-      logicGates: settings.logicGates,
-      logicGateType: settings.logicGateType
-    }
+    options: buildYosysOptions(settings)
   });
   return new Promise((resolve, reject) => {
     const req = https.request('https://digitaljs.tilk.eu/api/yosys2digitaljs', {
@@ -762,7 +814,49 @@ function getWebviewHtml() {
       currentSettings = settings;
 
       try {
-        circuit = new digitaljs.Circuit(json);
+        // "Simplify diagram" is not a synthesis-time option in the
+        // yosys2digitaljs library — it corresponds to digitaljs's own
+        // client-side post-processing transform, which merges/prunes
+        // components in the already-synthesised JSON to improve
+        // readability. Apply it here so it works for both the server
+        // and WASM synthesis paths.
+        let circuitJson = json;
+        if (settings && settings.simplify && digitaljs.transform && typeof digitaljs.transform.transformCircuit === 'function') {
+          try {
+            circuitJson = digitaljs.transform.transformCircuit(json, digitaljs.transform.transformations);
+          } catch (simplifyErr) {
+            console.warn('Diagram simplification failed, showing unsimplified circuit:', simplifyErr);
+            circuitJson = json;
+          }
+        }
+
+        // Wire the "Zero combinational propagation delay" and
+        // "Simulation engine" settings from the sidebar into the
+        // digitaljs.Circuit constructor options.
+        const circuitOptions = {};
+        if (settings && settings.delay) {
+          circuitOptions.defaultCombinationalPropagation = 0;
+        }
+        if (settings && settings.simEngine === 'webworker' && digitaljs.engines && digitaljs.engines.WorkerEngine) {
+          circuitOptions.engine = digitaljs.engines.WorkerEngine;
+        }
+        // 'sync' (Synchronous engine) needs no explicit engine option —
+        // digitaljs.Circuit already defaults to the synchronous engine.
+
+        try {
+          circuit = new digitaljs.Circuit(circuitJson, circuitOptions);
+        } catch (engineErr) {
+          // The WebWorker engine can fail to spin up under some webview
+          // sandboxing conditions; fall back to the synchronous engine
+          // rather than failing the whole synthesis.
+          if (circuitOptions.engine) {
+            console.warn('WebWorker simulation engine failed, falling back to synchronous engine:', engineErr);
+            delete circuitOptions.engine;
+            circuit = new digitaljs.Circuit(circuitJson, circuitOptions);
+          } else {
+            throw engineErr;
+          }
+        }
         monitor     = new digitaljs.Monitor(circuit);
         monitorview = new digitaljs.MonitorView({ model: monitor, el: $('#monitor') });
         buildIoPanel(fileName);
@@ -959,6 +1053,21 @@ class DigitalJSSettingsProvider {
     .radio-group.hidden { display: none; }
     .radio-group label { color: var(--vscode-foreground); }
     .radio-group input:disabled + span { opacity: 0.5; }
+
+    .sub-group { margin-left: 24px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .sub-group.hidden { display: none; }
+    .sub-group label { color: var(--vscode-foreground); }
+    .sub-group input:disabled + span { opacity: 0.5; }
+
+    .gate-subset-row { margin-left: 24px; margin-top: 4px; display: flex; flex-flow: row wrap; gap: 4px 14px; }
+    .gate-subset-row.hidden { display: none; }
+    .gate-subset-row label { display: inline-flex; align-items: center; margin-bottom: 0; color: var(--vscode-foreground); white-space: nowrap; }
+    .gate-subset-row input:disabled + span { opacity: 0.5; }
+
+    .lut-width-row { margin-left: 24px; margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+    .lut-width-row.hidden { display: none; }
+    .lut-width-row input[type="number"] { width: 56px; background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border: 1px solid var(--vscode-dropdown-border); padding: 3px; border-radius: 2px; }
+    .lut-width-row span { color: var(--vscode-foreground); }
   </style>
 </head>
 <body>
@@ -980,14 +1089,32 @@ class DigitalJSSettingsProvider {
       <option value="yes">FSM transform</option>
       <option value="nomacro">FSM as circuit element</option>
     </select>
+    <div class="sub-group hidden" id="fsm-suboptions">
+      <label><input type="checkbox" id="opt-fsmExpand"> <span>Merge more logic into FSM</span></label>
+    </div>
   </div>
   
   <div class="setting-group">
     <label><input type="checkbox" id="opt-logicGates"> Convert to logic gates</label>
     <div class="radio-group" id="logic-gate-radios">
       <label><input type="radio" name="logicGateType" value="unprocessed" checked> <span>Keep gates unprocessed</span></label>
+
       <label><input type="radio" name="logicGateType" value="subset"> <span>Map into subset of gates</span></label>
+      <div class="gate-subset-row hidden" id="gate-subset-options">
+        <label><input type="checkbox" id="gate-and" checked> <span>AND</span></label>
+        <label><input type="checkbox" id="gate-nand" checked> <span>NAND</span></label>
+        <label><input type="checkbox" id="gate-or" checked> <span>OR</span></label>
+        <label><input type="checkbox" id="gate-nor" checked> <span>NOR</span></label>
+        <label><input type="checkbox" id="gate-xor" checked> <span>XOR</span></label>
+        <label><input type="checkbox" id="gate-xnor" checked> <span>XNOR</span></label>
+        <label><input type="checkbox" id="gate-mux" checked> <span>MUX</span></label>
+      </div>
+
       <label><input type="radio" name="logicGateType" value="luts"> <span>Map into LUTs</span></label>
+      <div class="lut-width-row hidden" id="gate-luts-options">
+        <input type="number" id="gate-lut-width" value="4" min="1" max="8">
+        <span>Width of generated LUTs</span>
+      </div>
     </div>
   </div>
 
@@ -1007,6 +1134,7 @@ class DigitalJSSettingsProvider {
     <label>Simulation engine</label>
     <select id="opt-simEngine">
       <option value="webworker">WebWorker (faster and responsive)</option>
+      <option value="sync">Synchronous (extensible but slow)</option>
     </select>
   </div>
 
@@ -1019,23 +1147,70 @@ class DigitalJSSettingsProvider {
     const lgRadios = document.querySelectorAll('input[name="logicGateType"]');
     const lgRadioGroup = document.getElementById('logic-gate-radios');
 
+    const gateSubsetRow = document.getElementById('gate-subset-options');
+    const gateSubsetInputs = gateSubsetRow.querySelectorAll('input[type="checkbox"]');
+    const gateLutsRow = document.getElementById('gate-luts-options');
+    const gateLutWidth = document.getElementById('gate-lut-width');
+
     function updateRadioState() {
       lgRadioGroup.classList.toggle('hidden', !lgCheckbox.checked);
       lgRadios.forEach(r => { r.disabled = !lgCheckbox.checked; });
+      updateGateSubOptions();
+    }
+
+    function updateGateSubOptions() {
+      const selectedRadio = document.querySelector('input[name="logicGateType"]:checked');
+      const val = selectedRadio ? selectedRadio.value : 'unprocessed';
+
+      const showSubset = lgCheckbox.checked && val === 'subset';
+      gateSubsetRow.classList.toggle('hidden', !showSubset);
+      gateSubsetInputs.forEach(el => { el.disabled = !showSubset; });
+
+      const showLuts = lgCheckbox.checked && val === 'luts';
+      gateLutsRow.classList.toggle('hidden', !showLuts);
+      gateLutWidth.disabled = !showLuts;
     }
 
     // Toggle radio enabled state on checkbox change
     lgCheckbox.addEventListener('change', updateRadioState);
+    lgRadios.forEach(r => r.addEventListener('change', updateGateSubOptions));
     updateRadioState(); // Initial run
+
+    // FSM transform sub-option: only shown when a real FSM mode is selected
+    const fsmSelect = document.getElementById('opt-fsm');
+    const fsmSubOptions = document.getElementById('fsm-suboptions');
+    const fsmExpandCheckbox = document.getElementById('opt-fsmExpand');
+
+    function updateFsmSubOptions() {
+      const show = fsmSelect.value === 'yes' || fsmSelect.value === 'nomacro';
+      fsmSubOptions.classList.toggle('hidden', !show);
+      fsmExpandCheckbox.disabled = !show;
+    }
+
+    fsmSelect.addEventListener('change', updateFsmSubOptions);
+    updateFsmSubOptions(); // Initial run
 
     function getSettings() {
       const selectedRadio = document.querySelector('input[name="logicGateType"]:checked');
+      const logicGateType = selectedRadio ? selectedRadio.value : 'unprocessed';
+
       return {
         optimize: document.getElementById('opt-optimize').checked,
         simplify: document.getElementById('opt-simplify').checked,
-        fsm: document.getElementById('opt-fsm').value,
-        logicGates: document.getElementById('opt-logicGates').checked,
-        logicGateType: selectedRadio ? selectedRadio.value : 'unprocessed',
+        fsm: fsmSelect.value,
+        fsmExpand: fsmExpandCheckbox.checked,
+        logicGates: lgCheckbox.checked,
+        logicGateType: logicGateType,
+        logicGateSubset: {
+          and:  document.getElementById('gate-and').checked,
+          nand: document.getElementById('gate-nand').checked,
+          or:   document.getElementById('gate-or').checked,
+          nor:  document.getElementById('gate-nor').checked,
+          xor:  document.getElementById('gate-xor').checked,
+          xnor: document.getElementById('gate-xnor').checked,
+          mux:  document.getElementById('gate-mux').checked
+        },
+        lutWidth: parseInt(gateLutWidth.value, 10) || 4,
         synthMode: document.getElementById('opt-synthMode').value,
         delay: document.getElementById('opt-delay').checked,
         simEngine: document.getElementById('opt-simEngine').value
@@ -1069,8 +1244,11 @@ const DEFAULT_SYNTH_SETTINGS = {
   optimize: true,
   simplify: true,
   fsm: 'nomap',
+  fsmExpand: false,
   logicGates: false,
   logicGateType: 'unprocessed',
+  logicGateSubset: { and: true, nand: true, or: true, nor: true, xor: true, xnor: true, mux: true },
+  lutWidth: 4,
   synthMode: 'server',
   delay: false,
   simEngine: 'webworker'
